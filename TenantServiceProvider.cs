@@ -78,6 +78,7 @@ public class TenantServiceProvider : ITenantServiceProvider
 
                 //});
 
+                tenantServices.AddHttpContextAccessor();
                 tenantServices.AddElsa(elsa =>
                 {
                     elsa.UseWorkflowManagement(management =>
@@ -100,6 +101,7 @@ public class TenantServiceProvider : ITenantServiceProvider
                     elsa.UseWorkflowsApi(api =>
                     {
                     });
+                    elsa.UseWorkflows(); //need to check what is this?
                     elsa.UseRealTimeWorkflows();
                     elsa.UseCSharp();
                     elsa.UseHttp();
@@ -193,6 +195,20 @@ public class TenantServiceProvider : ITenantServiceProvider
 
             tenantContext.Pipeline = builder.Build();
         }
+        else
+        {
+            var provider = tenantContext.ServiceProvider;
+
+            context.Features.Set<IServiceProvidersFeature>(
+                new RequestServicesFeature(context, provider.GetRequiredService<IServiceScopeFactory>()));
+
+        }
+        var contextAccessor = tenantContext.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
+        if (contextAccessor != null)
+        {
+            contextAccessor.HttpContext = context;
+        }
+
         return tenantContext.Pipeline;
     }
 
